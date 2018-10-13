@@ -1,7 +1,8 @@
 #*******************************************************************************#
 # Sameer Pawar, Oct-2018                                                          
-# LeNet++ implementation in TensorFlow                              
-# - unlike original LeNet, LeNet++ accepts color 32*32 images and any number of classes (< 84)
+# VGG++ implementation in TensorFlow                              
+# - unlike original VGG, 
+# - input layer accepts 32 x 32 x 3 images.
 #*******************************************************************************#
 import time
 import tensorflow as tf
@@ -11,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from img_lib import normalize_image, histogram_equalize_image
 
-class LeNet:
+class VGG:
 
     def __init__(self, n_classes):        
         self.n_classes = n_classes        
@@ -24,21 +25,38 @@ class LeNet:
 
         # Define weights and biases for the graph
         self.weights = {
-        'w_conv_0': tf.get_variable("w_conv_0", shape = [1, 1, 3, 1],       initializer = self.initializer),
-        'w_conv_1': tf.get_variable("w_conv_1", shape = [5, 5, 1, 6],       initializer = self.initializer),
-        'w_conv_2': tf.get_variable("w_conv_2", shape = [5, 5, 6, 16],      initializer = self.initializer),
-        'w_fc_3':   tf.get_variable("w_fc_3",   shape = [400, 120],         initializer = self.initializer),
-        'w_fc_4':   tf.get_variable("w_fc_4",   shape = [120, 84],          initializer = self.initializer),
-        'w_fc_5':   tf.get_variable("w_fc_5",  shape = [84, self.n_classes],initializer = self.initializer)
+        # 32x32x3, params = 3
+        'w_conv_0': tf.get_variable("w_conv_0",   shape = [1, 1, 3, 1],       initializer = self.initializer),
+        # 32x32x1, params = 9*32 ~ 2^8
+        'w_conv_11': tf.get_variable("w_conv_11", shape = [3, 3, 1, 32],       initializer = self.initializer),
+        # 30x30x32, params = 9*32*32 ~ 2^13 = 8k
+        'w_conv_12': tf.get_variable("w_conv_12", shape = [3, 3, 32, 32],       initializer = self.initializer),
+        # 28x28x32-> 14x14x32, params = 9*32*64 ~ 2^14 = 16k
+        'w_conv_21': tf.get_variable("w_conv_21", shape = [3, 3, 32, 64],      initializer = self.initializer),
+        # 12x12x64, params = 9*64*64 ~ 2^15 = 32k
+        'w_conv_22': tf.get_variable("w_conv_22", shape = [3, 3, 64, 64],      initializer = self.initializer),
+        # 10x10x64-> 5x5x64, params = 9*64*128 ~ 2^16 = 64k
+        'w_conv_31': tf.get_variable("w_conv_31", shape = [3, 3, 64, 128],      initializer = self.initializer),
+        # 3x3x128, params = 9*128*128, ~ 2^17 = 128k
+        'w_conv_32': tf.get_variable("w_conv_32", shape = [3, 3, 128, 128],      initializer = self.initializer),
+        # 1x1x128, params = 128*128, ~ 2^14 = 16k
+        'w_fc_1':   tf.get_variable("w_fc_1",   shape = [128, 128],         initializer = self.initializer),
+        # params = 128*84, ~ 2^13 = 8k
+        'w_fc_2':   tf.get_variable("w_fc_2",   shape = [128, 84],          initializer = self.initializer),
+        'w_fc_3':   tf.get_variable("w_fc_3",   shape = [84, self.n_classes],initializer = self.initializer)
         }
 
         self.biases = {
-        'b_conv_0': tf.get_variable("b_conv_0", initializer = tf.zeros(1)),
-        'b_conv_1': tf.get_variable("b_conv_1", initializer = tf.zeros(6)),
-        'b_conv_2': tf.get_variable("b_conv_2", initializer = tf.zeros(16)),
-        'b_fc_3':   tf.get_variable("b_fc_3",   initializer = tf.zeros(120)),
-        'b_fc_4':   tf.get_variable("b_fc_4",   initializer = tf.zeros(84)),
-        'b_fc_5':   tf.get_variable("b_fc_5", initializer = tf.zeros(self.n_classes))
+        'b_conv_0': tf.get_variable("b_conv_0",   initializer = tf.zeros(1)),
+        'b_conv_11': tf.get_variable("b_conv_11", initializer = tf.zeros(32)),
+        'b_conv_12': tf.get_variable("b_conv_12", initializer = tf.zeros(32)),
+        'b_conv_21': tf.get_variable("b_conv_21", initializer = tf.zeros(64)),
+        'b_conv_22': tf.get_variable("b_conv_22", initializer = tf.zeros(64)),
+        'b_conv_31': tf.get_variable("b_conv_31", initializer = tf.zeros(128)),
+        'b_conv_32': tf.get_variable("b_conv_32", initializer = tf.zeros(128)),
+        'b_fc_1':   tf.get_variable("b_fc_1",     initializer = tf.zeros(128)),
+        'b_fc_2':   tf.get_variable("b_fc_2",     initializer = tf.zeros(84)),
+        'b_fc_3':   tf.get_variable("b_fc_3",     initializer = tf.zeros(self.n_classes))
         }
         self.keep_prob = np.ones(len(self.weights))
         
@@ -60,15 +78,22 @@ class LeNet:
     def init_dropout_probabilities(self, dropout_probabilities):        
         if 'keep_conv_0' in dropout_probabilities:
             self.keep_prob[1] = dropout_probabilities['keep_conv_0']
-        if 'keep_conv_1' in dropout_probabilities:
-            self.keep_prob[2] = dropout_probabilities['keep_conv_1']
-        if 'keep_conv_2' in dropout_probabilities:
-            self.keep_prob[3] = dropout_probabilities['keep_conv_2']
-        if 'keep_fc_3' in dropout_probabilities:
-            self.keep_prob[4] = dropout_probabilities['keep_fc_3']
-        if 'keep_fc_4' in dropout_probabilities:
-            self.keep_prob[5] = dropout_probabilities['keep_fc_4']
-        
+        if 'keep_conv_11' in dropout_probabilities:
+            self.keep_prob[2] = dropout_probabilities['keep_conv_11']
+        if 'keep_conv_12' in dropout_probabilities:
+            self.keep_prob[3] = dropout_probabilities['keep_conv_12']            
+        if 'keep_conv_21' in dropout_probabilities:
+            self.keep_prob[4] = dropout_probabilities['keep_conv_21']
+        if 'keep_conv_22' in dropout_probabilities:
+            self.keep_prob[5] = dropout_probabilities['keep_conv_22'] 
+        if 'keep_conv_31' in dropout_probabilities:
+            self.keep_prob[6] = dropout_probabilities['keep_conv_31']
+        if 'keep_conv_32' in dropout_probabilities:
+            self.keep_prob[7] = dropout_probabilities['keep_conv_32']                    
+        if 'keep_fc_1' in dropout_probabilities:
+            self.keep_prob[8] = dropout_probabilities['keep_fc_1']
+        if 'keep_fc_2'in dropout_probabilities:
+            self.keep_prob[9] = dropout_probabilities['keep_fc_2']
         return
 
 
@@ -110,51 +135,98 @@ class LeNet:
         return np.array([normalize_image(histogram_equalize_image(image)) for image in X_data]).reshape(X_data.shape[0], 32,32,-1)
        
     
-    def get_logits(self, x, keep_probabilities, batch_norm_flag):                
-        # conv-Layer 1 - 32*32*3 -> 32*32*1
-        # maps 3 color channels to one generalized grayscale channel
+    def get_logits(self, x, keep_probabilities, batch_norm_flag):    
+
+        #********************************************************************************************
+        # conv-group-0
         self.layers['l_1'] = self.conv2d(x, W = self.weights['w_conv_0'], b = self.biases['b_conv_0'])
         self.layers['l_1'] = tf.nn.dropout(self.layers['l_1'], self.keep_probabilities[1])
-
-        # conv-Layer 2 - 32*32*1 -> 28*28*6->14*14*6
-        self.layers['l_2'] = self.conv2d(self.layers['l_1'], self.weights['w_conv_1'], self.biases['b_conv_1'])
-        self.layers['l_2'] = self.maxpool2d(self.layers['l_2'])
-        self.layers['l_2'] = tf.cond(batch_norm_flag, 
-                                     lambda: self.activation(self.layers['l_2'], BN = True), 
-                                     lambda: self.activation(self.layers['l_2'], BN = False)
-                                    )
-        self.layers['l_2'] = tf.nn.dropout(self.layers['l_2'], keep_probabilities[2])        
-
-        # conv-Layer 3 - 14*14*6 -> 10*10*16->5*5*16
-        self.layers['l_3'] = self.conv2d(self.layers['l_2'], self.weights['w_conv_2'], self.biases['b_conv_2'])
-        self.layers['l_3'] = self.maxpool2d(self.layers['l_3'])
-        self.layers['l_3'] = tf.cond(batch_norm_flag, 
-                                     lambda: self.activation(self.layers['l_3'], BN = True), 
-                                     lambda: self.activation(self.layers['l_3'], BN = False)
-                                    )
-        self.layers['l_3'] = tf.nn.dropout(self.layers['l_3'], keep_probabilities[3])        
-
-        # FC-Layer 4 - 5*5*16-> 400->120
-        self.layers['l_4'] = tf.matmul(flatten(self.layers['l_3']), self.weights['w_fc_3']) + self.biases['b_fc_3']
-        self.layers['l_4'] = tf.cond(batch_norm_flag, 
-                                     lambda: self.activation(self.layers['l_4'], BN = True), 
-                                     lambda: self.activation(self.layers['l_4'], BN = False)
-                                    )
-        self.layers['l_4'] = tf.nn.dropout(self.layers['l_4'], keep_probabilities[4])        
+        #********************************************************************************************
         
-        # FC-Layer 5 - 120-> 84
-        self.layers['l_5'] = tf.matmul(self.layers['l_4'], self.weights['w_fc_4']) + self.biases['b_fc_4']
+        #********************************************************************************************
+        # conv-group-1
+        self.layers['l_21'] = self.conv2d(self.layers['l_1'], self.weights['w_conv_11'], self.biases['b_conv_11'])
+        self.layers['l_21'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_21'], BN = True), 
+                                     lambda: self.activation(self.layers['l_21'], BN = False)
+                                    )
+        self.layers['l_21'] = tf.nn.dropout(self.layers['l_21'], keep_probabilities[2])                                    
+
+        self.layers['l_22'] = self.conv2d(self.layers['l_21'], self.weights['w_conv_12'], self.biases['b_conv_12'])
+        self.layers['l_22'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_22'], BN = True), 
+                                     lambda: self.activation(self.layers['l_22'], BN = False)
+                                    )
+        self.layers['l_2'] = self.maxpool2d(self.layers['l_22'])
+        self.layers['l_2'] = tf.nn.dropout(self.layers['l_2'], keep_probabilities[3])
+        #********************************************************************************************
+        
+        #********************************************************************************************
+        # conv-group-2
+        self.layers['l_31'] = self.conv2d(self.layers['l_2'], self.weights['w_conv_21'], self.biases['b_conv_21'])
+        self.layers['l_31'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_31'], BN = True), 
+                                     lambda: self.activation(self.layers['l_31'], BN = False)
+                                    )
+        self.layers['l_31'] = tf.nn.dropout(self.layers['l_31'], keep_probabilities[4])
+
+        self.layers['l_32'] = self.conv2d(self.layers['l_31'], self.weights['w_conv_22'], self.biases['b_conv_22'])
+        self.layers['l_32'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_32'], BN = True), 
+                                     lambda: self.activation(self.layers['l_32'], BN = False)
+                                    )
+        self.layers['l_3'] = self.maxpool2d(self.layers['l_32'])
+        self.layers['l_3'] = tf.nn.dropout(self.layers['l_3'], keep_probabilities[5])
+        #********************************************************************************************
+
+
+        #********************************************************************************************
+        # conv-group-3
+        self.layers['l_41'] = self.conv2d(self.layers['l_3'], self.weights['w_conv_31'], self.biases['b_conv_31'])
+        self.layers['l_41'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_41'], BN = True), 
+                                     lambda: self.activation(self.layers['l_41'], BN = False)
+                                    )
+        self.layers['l_41'] = tf.nn.dropout(self.layers['l_41'], keep_probabilities[6])
+
+
+        self.layers['l_42'] = self.conv2d(self.layers['l_41'], self.weights['w_conv_32'], self.biases['b_conv_32'])
+        self.layers['l_42'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_42'], BN = True), 
+                                     lambda: self.activation(self.layers['l_42'], BN = False)
+                                    )
+        self.layers['l_4'] = self.maxpool2d(self.layers['l_42'])
+        self.layers['l_4'] = tf.nn.dropout(self.layers['l_4'], keep_probabilities[7])
+        #********************************************************************************************
+
+
+        #********************************************************************************************
+        # FC-Layer 1
+        self.layers['l_5'] = tf.matmul(flatten(self.layers['l_4']), self.weights['w_fc_1']) + self.biases['b_fc_1']
         self.layers['l_5'] = tf.cond(batch_norm_flag, 
                                      lambda: self.activation(self.layers['l_5'], BN = True), 
                                      lambda: self.activation(self.layers['l_5'], BN = False)
                                     )
-        self.layers['l_5'] = tf.nn.dropout(self.layers['l_5'], keep_probabilities[5])
+        self.layers['l_5'] = tf.nn.dropout(self.layers['l_5'], keep_probabilities[8])        
+        #********************************************************************************************
 
-        # FC-Layer 6 - 84 -> 43 (n_classes)
-        self.layers['l_6'] = tf.matmul(self.layers['l_5'], self.weights['w_fc_5']) + self.biases['b_fc_5']
+        #********************************************************************************************
+        # FC-Layer 2
+        self.layers['l_6'] = tf.matmul(flatten(self.layers['l_5']), self.weights['w_fc_2']) + self.biases['b_fc_2']
+        self.layers['l_6'] = tf.cond(batch_norm_flag, 
+                                     lambda: self.activation(self.layers['l_6'], BN = True), 
+                                     lambda: self.activation(self.layers['l_6'], BN = False)
+                                    )
+        self.layers['l_6'] = tf.nn.dropout(self.layers['l_6'], keep_probabilities[9])        
+        #********************************************************************************************
+
+        #********************************************************************************************
+        # FC-Layer 3 - 84 -> 43 (n_classes)
+        self.layers['l_7'] = tf.matmul(self.layers['l_6'], self.weights['w_fc_3']) + self.biases['b_fc_3']
+        #********************************************************************************************
 
         
-        logits = self.layers['l_6']
+        logits = self.layers['l_7']
 
         return logits
 
@@ -236,8 +308,9 @@ class LeNet:
             saver = tf.train.Saver()
             for i in range(epochs):    
                 if verbose:      
+                    print(" ")
                     print("running EPOCH {}".format(i+1))
-                    t1 = time.time()
+                    t1 = time.time()    
                 x, y = shuffle(x, y)
                 for offset in range(0, x.shape[0], batch_size):
                     end = np.minimum(offset + batch_size, x.shape[0])
@@ -255,14 +328,7 @@ class LeNet:
                 
                 
                 training_results   = self.evaluate(x_train_preprocessed, y_train_preprocessed)
-                validation_results = self.evaluate(x_valid_preprocessed, y_valid_preprocessed)
-                
-                if verbose: 
-                    print("Time for one epoch {:.2f}".format(time.time()-t1))
-                    print("training   accuracy = {:.3f}".format(training_results['accuracy']))
-                    print("validation accuracy = {:.3f}".format(validation_results['accuracy']))
-                    print("training   loss = {:.3f}".format(training_results['loss']))
-                    print("validation loss = {:.3f}".format(validation_results['loss']))
+                validation_results = self.evaluate(x_valid_preprocessed, y_valid_preprocessed)                
 
                 self.training_accuracy[i]    = training_results['accuracy']
                 self.training_loss[i]        = training_results['loss']        
@@ -281,7 +347,15 @@ class LeNet:
                     self.max_id                  = i
                     if save_trained_weights is not None:
                         saver.save(sess, save_trained_weights)
-                
+
+                if verbose: 
+                    print("time for one epoch {:.2f}".format(time.time()-t1))
+                    print("training   accuracy = {:.3f}".format(training_results['accuracy']))
+                    print("validation accuracy = {:.3f}".format(validation_results['accuracy']))
+                    print("training   loss = {:.3f}".format(training_results['loss']))
+                    print("validation loss = {:.3f}".format(validation_results['loss']))
+                    print("max validation accuracy {:.3f} is at epoch {}".format(self.max_validation_accuracy, self.max_id + 1))
+
         return
 
     def evaluate(self, x=None, y=None):
