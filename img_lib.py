@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-def list_images(images, xaxis = "", yaxis ="", cmap=None, ncols = 10, title = ''):
+def list_images(images, xaxis = "", yaxis ="", cmap=None, ncols = 10, title = '', figsave = None):
     """
     Display a list of images in a single figure with matplotlib.
         Parameters:
@@ -11,7 +11,7 @@ def list_images(images, xaxis = "", yaxis ="", cmap=None, ncols = 10, title = ''
             yaxis (Default = " "): A string to be used as a label for each image.
             cmap (Default = None): Used to display gray images.
     """
-    plt.figure(figsize=(10, 10))    
+    fig = plt.figure(figsize=(10, 10))    
     n_images = len(images)
     nrows = np.ceil(n_images/ncols) 
 
@@ -26,7 +26,10 @@ def list_images(images, xaxis = "", yaxis ="", cmap=None, ncols = 10, title = ''
         plt.yticks([])    
     plt.tight_layout(pad=0, h_pad=0, w_pad=0)    
     plt.title(title, loc = 'center', fontsize=16)        
-    plt.show()    
+    plt.show()
+    if figsave is not None:
+        fig.savefig(figsave)
+
 
 def rotate_image(image, angle_range = 30):
     rows,cols,ch = image.shape
@@ -34,8 +37,13 @@ def rotate_image(image, angle_range = 30):
     rot_mat = cv2.getRotationMatrix2D((cols/2,rows/2), random_angle, scale = 1)
     return cv2.warpAffine(image,rot_mat,(cols,rows))
 
-# 20
-def translate_image(image, trans_range = 5):
+def scale_image(image, scale_range = 30):
+    rows,cols,ch = image.shape
+    random_scale = 1 + (np.random.uniform(scale_range)-scale_range/2)/100
+    scale_mat = cv2.getRotationMatrix2D((cols/2,rows/2), angle = 0, scale = random_scale)
+    return cv2.warpAffine(image,scale_mat,(cols,rows))
+
+def translate_image(image, trans_range = 10):
     rows,cols,ch = image.shape
     tr_x = trans_range*np.random.uniform()-trans_range/2
     tr_y = trans_range*np.random.uniform()-trans_range/2
@@ -58,8 +66,6 @@ def gray_scale_3channel_image(image):
     image[..., 2]    = change_brightness_image(gray_scale_image, isGrayScale = True)
     return image
     
-    
-# 0.5, 1.5
 def change_brightness_image(image, brightness_range = 1.5, isGrayScale = False):  
     random_bright = 1 + brightness_range*np.random.uniform() - brightness_range/2 
     if not isGrayScale:
@@ -82,7 +88,6 @@ def motion_blur_image(image, size = 3):
     kernel_motion_blur[int((size-1)/2), :] = np.ones(size)
     kernel_motion_blur = kernel_motion_blur / size
     return cv2.filter2D(image, -1, kernel_motion_blur)
-    
 
 def histogram_equalize_image(image, gridSize = (4, 4)):
     clahe = cv2.createCLAHE(tileGridSize=gridSize)
@@ -94,3 +99,25 @@ def histogram_equalize_image(image, gridSize = (4, 4)):
 def normalize_image(image):
         # pixels after normalization are in range [-0.5, +0.5]
         return (image - np.min(image))/(np.max(image)-np.min(image)) - 0.5
+
+def mean_variance_of_imgdata(x_data = None):
+    # Mean and variance image of a data set
+    results = {}
+    if x_data is not None:
+        mean_img = np.mean(x_data, axis = 0).astype('uint8')
+        std_img  = np.std(x_data, axis = 0).astype('uint8')
+        results['mean'] = mean_img
+        results['std']  = std_img
+    return results
+
+def get_images_from_class(X_data, y_data, class_labels, n_samples):    
+    X_class_data = None
+    for class_id in class_labels:        
+        n_class_samples = np.bincount(y_data)[class_id]
+        class_data = X_data[y_data == class_id]
+        if X_class_data is None:
+            X_class_data = class_data[np.random.randint(n_class_samples, size = n_samples)]
+        else:            
+            X_class_data = np.concatenate((X_class_data, class_data[np.random.randint(n_class_samples, size = n_samples)]), axis = 0)
+        
+    return np.array(X_class_data)

@@ -255,33 +255,34 @@ class LeNet:
                 
                 
                 training_results   = self.evaluate(x_train_preprocessed, y_train_preprocessed)
-                validation_results = self.evaluate(x_valid_preprocessed, y_valid_preprocessed)
-                
-                if verbose: 
-                    print("Time for one epoch {:.2f}".format(time.time()-t1))
-                    print("training   accuracy = {:.3f}".format(training_results['accuracy']))
-                    print("validation accuracy = {:.3f}".format(validation_results['accuracy']))
-                    print("training   loss = {:.3f}".format(training_results['loss']))
-                    print("validation loss = {:.3f}".format(validation_results['loss']))
+                validation_results = self.evaluate(x_valid_preprocessed, y_valid_preprocessed)                
 
                 self.training_accuracy[i]    = training_results['accuracy']
                 self.training_loss[i]        = training_results['loss']        
                 self.training_precision[:,i] = training_results['precision']
                 self.training_recall[:,i]    = training_results['recall']
                 self.training_F1score[:,i]   = training_results['F1score']
-            
+
                 self.validation_accuracy[i]    = validation_results['accuracy']
                 self.validation_loss[i]        = validation_results['loss']        
                 self.validation_precision[:,i] = validation_results['precision']
                 self.validation_recall[:,i]    = validation_results['recall']
                 self.validation_F1score[:,i]   = validation_results['F1score']    
-                
+
                 if self.validation_accuracy[i]  > self.max_validation_accuracy:
                     self.max_validation_accuracy = self.validation_accuracy[i]
                     self.max_id                  = i
                     if save_trained_weights is not None:
                         saver.save(sess, save_trained_weights)
-                
+
+                if verbose: 
+                    print("time for one epoch {:.2f}".format(time.time()-t1))
+                    print("training   accuracy = {:.3f}".format(training_results['accuracy']))
+                    print("validation accuracy = {:.3f}".format(validation_results['accuracy']))
+                    print("training   loss = {:.3f}".format(training_results['loss']))
+                    print("validation loss = {:.3f}".format(validation_results['loss']))
+                    print("max validation accuracy {:.3f} is at epoch {}".format(self.max_validation_accuracy, self.max_id + 1))
+
         return
 
     def evaluate(self, x=None, y=None):
@@ -343,18 +344,14 @@ class LeNet:
                 'validation_loss': self.validation_loss,
                 'validation_accuracy': self.validation_accuracy
         }
-    
-    """
-    def predict(self, x, top_k = 1):
-        batch_size = 1024
-        num_examples  = x.shape[0]
-        sess = tf.get_default_session()
-        prediction_result = np.ones((top_k, num_examples), dtype=np.float32)*(-1)
-        for offset in range(0, num_examples, batch_size):
-            end = np.minimum(offset + batch_size, num_examples)
-            batch_x = x[offset:end]
-            predicted_logits = sess.run(self.logits, feed_dict = {self.x: batch_x, self.training: False})
-            prediction_result[:,offset:end] = np.argsort(predicted_logits, axis=0)[::-1][0:top_k+1,:]
 
-        return prediction_result
-    """
+    def predict(self, x, top_k = 1):
+        sess                = tf.get_default_session()
+        predicted_logits    = sess.run( self.logits, 
+                                        feed_dict = {   self.x: x,
+                                                        self.keep_probabilities: np.ones(len(self.weights)), 
+                                                        self.batch_norm: False
+                                                    }
+                                        )
+        softmax, class_Id   = sess.run(tf.nn.top_k(tf.nn.softmax(predicted_logits), top_k))
+        return softmax, class_Id

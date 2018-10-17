@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>report.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+</head>
+<body>
+<h1 id="traffic-sign-recognition"><strong>Traffic Sign Recognition</strong></h1>
+<h2 id="writeup">Writeup</h2>
+<h3 id="data-set-summary-exploration">Data Set Summary &amp; Exploration</h3>
+<h4 id="1-provide-a-basic-summary-of-the-data-set-in-the-code-the-analysis-should-be-done-using-python-numpy-andor-pandas-methods-rather-than-hardcoding-results-manually">1. Provide a basic summary of the data set. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.</h4>
+<p>I used the numpy library to calculate summary statistics of the traffic
+signs data set:</p>
+<ul>
+<li>The size of training set is 34799</li>
+<li>The size of the validation set is 4410</li>
+<li>The size of test set is 12630</li>
+<li>The shape of a traffic sign image is [32 32]</li>
+<li>The number of unique classes/labels in the data set is 43</li>
+</ul>
+<h4 id="2-include-an-exploratory-visualization-of-the-dataset">2. Include an exploratory visualization of the dataset.</h4>
+<p>Here is an exploratory visualization of the data set. It is a bar chart.</p>
+<p><img src="/home/sameerp/Documents/Udacity/SDCND/Term-1/CarND-Traffic-Sign-Classifier-Project/histogram_training.png" alt=""><br>
+<strong>&quot;Hisogram of percentage count of different classes in training set&quot;</strong></p>
+<p><img src="/home/sameerp/Documents/Udacity/SDCND/Term-1/CarND-Traffic-Sign-Classifier-Project/histogram_validation.png" alt=""><br>
+<strong>&quot;Hisogram of percentage count of different classes in validation set&quot;</strong></p>
+<p>Also, the distirbution of different classes in the training set are as follows</p>
+<p>[ 180 1980 2010 1260 1770 1650  360 1290 1260 1320 1800 1170 1890 1920  690
+540  360  990 1080  180  300  270  330  450  240 1350  540  210  480  240
+390  690  210  599  360 1080  330  180 1860  270  300  210  210]</p>
+<h3 id="design-and-test-a-model-architecture">Design and Test a Model Architecture</h3>
+<h4 id="1-describe-how-you-preprocessed-the-image-data-what-techniques-were-chosen-and-why-did-you-choose-these-techniques-consider-including-images-showing-the-output-of-each-preprocessing-technique-pre-processing-refers-to-techniques-such-as-converting-to-grayscale-normalization-etc-optional-as-described-in-the-stand-out-suggestions-part-of-the-rubric-if-you-generated-additional-data-for-training-describe-why-you-decided-to-generate-additional-data-how-you-generated-the-data-and-provide-example-images-of-the-additional-data-then-describe-the-characteristics-of-the-augmented-training-set-like-number-of-images-in-the-set-number-of-images-for-each-class-etc">1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the &quot;Stand Out Suggestions&quot; part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)</h4>
+<p>I tried both color and gray scale images and found very little performance difference. So either types of images, i.e., color or grayscale, are okay with the network architecture I tried.</p>
+<p>After grayscale conversion, I normalized the data per channel using the following equation</p>
+<p>$$\text{img}[ch] = \frac{\text{img}[ch] - \min(\text{img}[ch])}{\max(\text{img}[ch])-\min(\text{img}[ch])}$$</p>
+<h4 id="2-describe-what-your-final-model-architecture-looks-like-including-model-type-layers-layer-sizes-connectivity-etc-consider-including-a-diagram-andor-table-describing-the-final-model">2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.</h4>
+<p>My final model consisted of the following layers:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Layer</th>
+<th style="text-align:center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Input</td>
+<td style="text-align:center">32x32x1 gray scale image</td>
+</tr>
+<tr>
+<td style="text-align:center">Convolution 5x5x6</td>
+<td style="text-align:center">1x1 stride, same padding, outputs 28x28x6</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Dropout</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Max pooling</td>
+<td style="text-align:center">2x2 stride,  outputs 14x14x6</td>
+</tr>
+<tr>
+<td style="text-align:center">Convolution 5x5x16</td>
+<td style="text-align:center">1x1 stride, same padding, outputs 10x10x16</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Dropout</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Max pooling</td>
+<td style="text-align:center">2x2 stride,  outputs 5x5x16</td>
+</tr>
+<tr>
+<td style="text-align:center">Fully connected</td>
+<td style="text-align:center">400 x 120</td>
+</tr>
+<tr>
+<td style="text-align:center">RELU</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Dropout</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">Fully connected</td>
+<td style="text-align:center">120 x 43 (# of classes)</td>
+</tr>
+<tr>
+<td style="text-align:center">Softmax</td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<h4 id="3-describe-how-you-trained-your-model-the-discussion-can-include-the-type-of-optimizer-the-batch-size-number-of-epochs-and-any-hyperparameters-such-as-learning-rate">3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.</h4>
+<p>To train the model, I used</p>
+<ul>
+<li>EPOCHS = 20</li>
+<li>BATCH_SIZE = 128</li>
+<li>Learning rate = 0.001</li>
+<li>AdamOptimizer</li>
+<li>Dropout_prob = 0.65</li>
+</ul>
+<h4 id="4-describe-the-approach-taken-for-finding-a-solution-and-getting-the-validation-set-accuracy-to-be-at-least-093-include-in-the-discussion-the-results-on-the-training-validation-and-test-sets-and-where-in-the-code-these-were-calculated-your-approach-may-have-been-an-iterative-process-in-which-case-outline-the-steps-you-took-to-get-to-the-final-solution-and-why-you-chose-those-steps-perhaps-your-solution-involved-an-already-well-known-implementation-or-architecture-in-this-case-discuss-why-you-think-the-architecture-is-suitable-for-the-current-problem">4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.</h4>
+<p>My final model results were:</p>
+<ul>
+<li>training set accuracy of 0.997</li>
+<li>validation set accuracy of  0.951</li>
+<li>test set accuracy of  0.938</li>
+</ul>
+<p>I tried two network architectures, LeNet and modified LeNet. I used a global flag to choose the model as needed. I also used drop out for regularization. I played with fine tuning drop out prob and found a sweet spot near 0.65.  I did not find a significant difference between the two architectures, but slightly better performance for modified LeNet. The modification has to do with removing one layer of fully connected layer from LeNet.</p>
+<h3 id="test-a-model-on-new-images">Test a Model on New Images</h3>
+<h4 id="1-choose-five-german-traffic-signs-found-on-the-web-and-provide-them-in-the-report">1. Choose five German traffic signs found on the web and provide them in the report.</h4>
+<p>I downloaded eight German traffic signs that I found on the web. Please find them in folder ./traffic-signs-data/webimages/</p>
+<p>The class labels for these web images are</p>
+<p>[23, 23, 28, 1, 9, 28, 23, 28]</p>
+<p>I had to resize the images to fit 32x32x3 size.</p>
+<h4 id="2-discuss-the-models-predictions-on-these-new-traffic-signs-and-compare-the-results-to-predicting-on-the-test-set-at-a-minimum-discuss-what-the-predictions-were-the-accuracy-on-these-new-predictions-and-compare-the-accuracy-to-the-accuracy-on-the-test-set-optional-discuss-the-results-in-more-detail-as-described-in-the-stand-out-suggestions-part-of-the-rubric">2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the &quot;Stand Out Suggestions&quot; part of the rubric).</h4>
+<p>The model was able to correctly guess 2 of the 8 traffic signs, which gives an accuracy of 25%.</p>
+<h4 id="3-describe-how-certain-the-model-is-when-predicting-on-each-of-the-five-new-images-by-looking-at-the-softmax-probabilities-for-each-prediction-provide-the-top-5-softmax-probabilities-for-each-image-along-with-the-sign-type-of-each-probability-optional-as-described-in-the-stand-out-suggestions-part-of-the-rubric-visualizations-can-also-be-provided-such-as-bar-charts">3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the &quot;Stand Out Suggestions&quot; part of the rubric, visualizations can also be provided such as bar charts)</h4>
+<p>If I consider success if the correct class belongs to top-5 softmax probabilities, then my model provided following outcome for true labels being  [23, 23, 28, 1, 9, 28, 23, 28]. Thus identifying correctly 6 out of 8 images.</p>
+<p>[array([[12, 40, 20, 26, 37],
+[20, 23, 10,  9, 17],
+[30, 11, 28, 12, 23],
+[31, 25, 21,  1,  2],
+[26, 40, 12, 18, 24],
+[28,  3, 35, 36, 11],
+[11, 23, 40, 21, 42],
+[21, 28, 31, 23, 11]], dtype=int32)]</p>
+
+</body>
+</html>

@@ -1,8 +1,11 @@
 #*******************************************************************************#
 # Sameer Pawar, Oct-2018                                                          
 # VGG++ implementation in TensorFlow                              
-# - unlike original VGG, 
 # - input layer accepts 32 x 32 x 3 images.
+"""
+Notes for future improvements
+1. fine tunning regularization further: 0.5, 0.5, 0.6, 0.7, 0.5 is last tried for 21, 22, 31, 32, fc_1
+"""
 #*******************************************************************************#
 import time
 import tensorflow as tf
@@ -124,16 +127,12 @@ class VGG:
             return batch_norm(output)
         else:
             return output
-    
-    
 
     def conv2d(self, x, W, b, strides=1):
         return tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='VALID') + b
 
-    
     def preprocess_data(self, X_data):
         return np.array([normalize_image(histogram_equalize_image(image)) for image in X_data]).reshape(X_data.shape[0], 32,32,-1)
-       
     
     def get_logits(self, x, keep_probabilities, batch_norm_flag):    
 
@@ -418,17 +417,14 @@ class VGG:
                 'validation_accuracy': self.validation_accuracy
         }
     
-    """
+    
     def predict(self, x, top_k = 1):
-        batch_size = 1024
-        num_examples  = x.shape[0]
-        sess = tf.get_default_session()
-        prediction_result = np.ones((top_k, num_examples), dtype=np.float32)*(-1)
-        for offset in range(0, num_examples, batch_size):
-            end = np.minimum(offset + batch_size, num_examples)
-            batch_x = x[offset:end]
-            predicted_logits = sess.run(self.logits, feed_dict = {self.x: batch_x, self.training: False})
-            prediction_result[:,offset:end] = np.argsort(predicted_logits, axis=0)[::-1][0:top_k+1,:]
-
-        return prediction_result
-    """
+        sess                = tf.get_default_session()
+        predicted_logits    = sess.run( self.logits, 
+                                        feed_dict = {   self.x: x,
+                                                        self.keep_probabilities: np.ones(len(self.weights)), 
+                                                        self.batch_norm: False
+                                                    }
+                                      )
+        softmax, class_Id   = sess.run(tf.nn.top_k(tf.nn.softmax(predicted_logits), top_k))
+        return softmax, class_Id    
