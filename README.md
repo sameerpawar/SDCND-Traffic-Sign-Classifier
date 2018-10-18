@@ -64,10 +64,12 @@ Below are some examples of original images and shear and motion blur applied ima
 ![sheared images][sheared_images]
 ![motion blur images][motion_blurred_images]
 
-
+---
+---
 ## Model Architecture
 I tried two models. LeNet and simpler version of VGG. As an interface for both models,I used a 1x1 conv to convert a 3-channel color image to a generalized mono channel image input. The two models then process this single channel 32 x 32 image for classification task. 
 
+---
 ### <b> LeNet </b>
 
 | Layer         		|     Description	        					| 
@@ -90,7 +92,18 @@ I tried two models. LeNet and simpler version of VGG. As an interface for both m
 | Fully connected [84 x 43]| output: 43 					|
 | Softmax        | output: 43 class probabilities
  
+#### Hyper-parameters
+1. optimizer: Adam optimizer with learning rate 1e-3
+1. batch size = 64
+1. number of epochs = 100
+1. dropouts: 0.5
 
+### <b> Final model (LeNet) results </b>
+* training set accuracy = 1
+* validation set accuracy = 0.98
+* test set accuracy = 0.96
+
+---
 ### <b>VGG </b>
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
