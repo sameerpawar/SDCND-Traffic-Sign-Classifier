@@ -1,58 +1,142 @@
-## Project: Build a Traffic Sign Recognition Program
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+# **German Traffic Sign Classification** 
+[//]: # (Image References)
+[classhist]: ./class_stats_histogram.jpg "Class histogram"
+[ex_class_images]: ./train_images.jpg
+[histEqual_images]: ./histogram_equalized_image.jpg
+[rotated_images]: ./rotate_image.jpg
+[translated_images]: ./translate_image.jpg
+[sheared_images]: ./shear_image.jpg
+[motion_blurred_images]: ./motion_blur_image.jpg
+[brightness_images]: ./change_brightness_image.jpg
 
-Overview
 ---
-In this project, you will use what you've learned about deep neural networks and convolutional neural networks to classify traffic signs. You will train and validate a model so it can classify traffic sign images using the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset). After the model is trained, you will then try out your model on images of German traffic signs that you find on the web.
+## Basic summary of the data set
+* Number of training examples = 34799
+* Number of validation examples = 4410
+* Number of test examples = 12630
+* Image data shape = (32, 32, 3)
+* Number of classes = 43
 
-We have included an Ipython notebook that contains further instructions 
-and starter code. Be sure to download the [Ipython notebook](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb). 
+### Histogram of distribution of samples per class in a training and validation data sets
 
-We also want you to create a detailed writeup of the project. Check out the [writeup template](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup. The writeup can be either a markdown file or a pdf document.
+![class histogram][classhist]
 
-To meet specifications, the project will require submitting three files: 
-* the Ipython notebook with the code
-* the code exported as an html file
-* a writeup report either as a markdown or pdf file 
+## Visual exploration
+Next, we take look at 10 random example images from 5 random classes.
 
-Creating a Great Writeup
----
-A great writeup should include the [rubric points](https://review.udacity.com/#!/rubrics/481/view) as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
+![class 5][ex_class_images]
 
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
+## Data Augmentation
+Visual observation of the sample images from the training data set for different classes shows that dataset contains images that are 1) dark, 2) blurred 3) tilted 4) sheared 5) off center. In order to provide our model an opportunity to learn and master these traits, we perform image data augmentation. The data augmentation is performed during run time based on random bits, it has following effects:
+1. Training data size in theory becomes infinite, allowing model to train without memorizing all the data set.
+1. No lengthy time consuming offline data crunching or huge memory requirements to load augmented data.
+1. We can control the statistical characteristics of different augmentation in training data fed to model, while providing equal data augementation opportunity to all classes.
 
-The Project
----
-The goals / steps of this project are the following:
-* Load the data set
-* Explore, summarize and visualize the data set
-* Design, train and test a model architecture
-* Use the model to make predictions on new images
-* Analyze the softmax probabilities of the new images
-* Summarize the results with a written report
+Next, we visualize the augmented data
+### <u>Histogram equalization and brightness perturbation</u>
+Histogram equalization is a method in image processing of contrast adjustment by adjusting the histogram of pixel intensities in an image to follow certain shape. The method is particularly useful in images with backgrounds and foregrounds that are both bright or both dark. This allows for areas of lower local contrast to gain a higher contrast. 
 
-### Dependencies
-This lab requires:
+In addition to histogram equalization (which takes care of local changes), we also perturb the overall brightness of an image by a random amount to generalize the model to be less sensitive to intensities while performing classification task.
 
-* [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit)
+Here, are some examples of histogram equalized and brightness perturbed images
 
-The lab environment can be created with CarND Term1 Starter Kit. Click [here](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) for the details.
+![hist equalized images][histEqual_images]
+![brightness changed images][brightness_images]
 
-### Dataset and Repository
 
-1. Download the data set. The classroom has a link to the data set in the "Project Instructions" content. This is a pickled dataset in which we've already resized the images to 32x32. It contains a training, validation and test set.
-2. Clone the project, which contains the Ipython notebook and the writeup template.
-```sh
-git clone https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project
-cd CarND-Traffic-Sign-Classifier-Project
-jupyter notebook Traffic_Sign_Classifier.ipynb
-```
+### <u>Rotation</u>
+We apply random rotatation of angle [-15, +15] degrees around the center of image. Here are some examples of original images and rotation applied images. 
 
-### Requirements for Submission
-Follow the instructions in the `Traffic_Sign_Classifier.ipynb` notebook and write the project report using the writeup template as a guide, `writeup_template.md`. Submit the project code and writeup document.
+![rotated images][rotated_images]
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+
+### <u>Translation</u>
+We apply random [-2, +2] pixel translation in both x-y directions.
+
+Here are some examples of original images and translation applied images. 
+
+![translated images][translated_images]
+
+### <u>Shear and Motion blur, </u>
+Below are some examples of original images and shear and motion blur applied images. 
+
+![sheared images][sheared_images]
+![motion blur images][motion_blurred_images]
+
+
+## Model Architecture
+I tried two models. LeNet and simpler version of VGG. As an interface for both models,I used a 1x1 conv to convert a 3-channel color image to a generalized mono channel image input. The two models then process this single channel 32 x 32 image for classification task. 
+
+### <b> LeNet </b>
+
+| Layer         		|     Description	        					| 
+|:---------------------:|:---------------------------------------------:| 
+| Input         		| 32x32x3 RGB image   							| 
+| conv [1x1x3, 1]       | valid padding, output: 32x32x1|
+| Linear activation     | output: 32x32x1|
+| conv [5x5x1, 6]     	| valid padding, output: 28x28x6            	|
+| maxpool [2x2]         | stride = 2, output: 14x14x6            	|
+| ReLu activation + batch normalization       | output: 14x14x6|
+| conv [5x5x6, 16]     	| valid padding, output: 10x10x16            	|
+| maxpool [2x2]         | stride = 2, output: 5x5x16            	|
+| ReLu activation + batch normalization       | output: 5x5x16|
+| Fully connected [400 x 120]| output: 120 					|
+| ReLu activation + batch normalization       | output: 120|
+| dropout       | output: 120|
+| Fully connected [120 x 84]| output: 84 					|
+| ReLu activation + batch normalization       | output: 84|
+| dropout       | output: 84|
+| Fully connected [84 x 43]| output: 43 					|
+| Softmax        | output: 43 class probabilities
+ 
+
+### <b>VGG </b>
+| Layer         		|     Description	        					| 
+|:---------------------:|:---------------------------------------------:| 
+| Input         		| 32x32x3 RGB image   							| 
+| conv [1x1x3, 1]       | valid padding, output: 32x32x1|
+| Linear activation     | output: 32x32x1|
+| conv [3x3x1, 32]     	| valid padding, output: 30x30x32            	|
+| ReLu activation + batch normalization       | output: 30x30x32|
+| dropout       | output: 30x30x32|
+| conv [3x3x32, 32]     	| valid padding, output: 28x28x32            	|
+| ReLu activation + batch normalization       | output: 28x28x32|
+| dropout       | output: 28x28x32|
+| maxpool [2x2]         | stride = 2, output: 14x14x32            	|
+| conv [3x3x32, 64]     	| valid padding, output: 12x12x64            	|
+| ReLu activation + batch normalization       | output: 12x12x64|
+| dropout       | output: 12x12x64|
+| conv [3x3x64, 64]     	| valid padding, output: 10x10x64            	|
+| ReLu activation + batch normalization       | output: 10x10x64|
+| dropout       | output: 10x10x64|
+| maxpool [2x2]         | stride = 2, output: 5x5x64            	|
+| conv [3x3x64, 128]     	| valid padding, output: 3x3x128            	|
+| ReLu activation + batch normalization       | output: 3x3x128|
+| dropout       | output: 3x3x128|
+| conv [3x3x128, 128]     	| valid padding, output: 1x1x128            	|
+| ReLu activation + batch normalization       | output: 1x1x128|
+| dropout       | output: 1x1x128|
+| Fully connected [128 x 128]| output: 128 					|
+| ReLu activation + batch normalization       | output: 128
+| dropout       | output: 128|
+| Fully connected [128 x 84]| output: 84 					|
+| ReLu activation + batch normalization       | output: 84|
+| dropout       | output: 84|
+| Fully connected [84 x 43]| output: 43 					|
+| Softmax        | output: 43 class probabilities
+
+
+#### Hyper-parameters
+1. optimizer: Adam optimizer with learning rate 1e-3
+1. batch size = 64
+1. number of epochs = 100
+1. dropouts: 0.5
+    
+
+### <b> Final model (VGG) results </b>
+* training set accuracy = 1
+* validation set accuracy = 0.99
+* test set accuracy = 0.98
+ 
 
